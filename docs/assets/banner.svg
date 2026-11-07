@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title description">
+  <title id="title">Tally Counter</title>
+  <desc id="description">One click. One count. A quiet native desktop counter for Windows and Linux, from zero to 9999.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f6f7f4"/>
+      <stop offset="1" stop-color="#e6ebed"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="1278" height="358" rx="24" fill="url(#background)" stroke="#d5dde0"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <rect x="72" y="51" width="27" height="3" rx="1.5" fill="#6b8592"/>
+    <text x="112" y="57" font-size="12" font-weight="700" letter-spacing="2.3" fill="#66777f">NATIVE DESKTOP UTILITY</text>
+    <text x="68" y="143" font-size="64" font-weight="700" letter-spacing="-2" fill="#252d33">Tally Counter</text>
+    <text x="72" y="192" font-size="28" font-weight="400" fill="#4e606a">One click. One count.</text>
+    <text x="72" y="231" font-size="19" fill="#697981">Four rolling digits. One reset knob.</text>
+    <path d="M72 268H855" stroke="#ccd6da"/>
+    <text x="73" y="305" font-size="12" font-weight="700" letter-spacing="1.6" fill="#596a73">WINDOWS + LINUX</text>
+    <text x="855" y="306" text-anchor="end" font-family="Consolas, 'DejaVu Sans Mono', monospace" font-size="16" letter-spacing="2" fill="#596a73">0000 — 9999</text>
+    <path d="M923 58V302" stroke="#ccd6da"/>
+    <text x="1090" y="307" text-anchor="middle" font-size="12" font-weight="700" letter-spacing="1.7" fill="#61727b">VERSION 1.0.0</text>
+  </g>
+<svg x="975" y="62" width="230" height="230" viewBox="0 0 256 256"><defs><linearGradient id="m" x2="0" y2="1"><stop stop-color="#f5f7f8"/><stop offset="1" stop-color="#a9b2bc"/></linearGradient><linearGradient id="d" x2="0" y2="1"><stop stop-color="#151b22"/><stop offset=".5" stop-color="#343e47"/><stop offset="1" stop-color="#10161c"/></linearGradient></defs><rect x="10" y="39" width="236" height="180" rx="45" fill="#121820" opacity=".15"/><rect x="10" y="33" width="236" height="180" rx="45" fill="url(#m)" stroke="#96a1ad" stroke-width="3"/><rect x="27" y="70" width="202" height="105" rx="14" fill="#11161c"/><g fill="url(#d)" stroke="#060b10" stroke-width="2"><rect x="34" y="79" width="43" height="88" rx="5"/><rect x="82" y="79" width="43" height="88" rx="5"/><rect x="130" y="79" width="43" height="88" rx="5"/><rect x="178" y="79" width="43" height="88" rx="5"/></g><g fill="none" stroke="#f2f5f5" stroke-width="7"><rect x="46" y="101" width="19" height="45" rx="9"/><rect x="94" y="101" width="19" height="45" rx="9"/><rect x="142" y="101" width="19" height="45" rx="9"/><path d="M191 108l9-7v44m-10 0h21"/></g><path d="M33 124h190" stroke="#02060b" opacity=".27"/><path d="M47 191h163" stroke="#faffff" opacity=".6" stroke-width="2"/></svg>
+
+</svg>

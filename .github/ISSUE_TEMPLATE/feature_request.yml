@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an improvement to the counting experience.
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What would you like to do?
+      description: Describe the counting task or problem you want to improve.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested improvement
+      description: Explain the behavior you would like and how it would help.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or examples
+      description: Optional. Include relevant alternatives, sketches, or examples.

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Tally Counter
+GenericName=Tally counter
+Comment=Count with a click or the Space key
+Exec=tally-counter
+Icon=tally-counter
+Terminal=false
+Categories=Utility;
+Keywords=tally;counter;count;clicker;
+StartupNotify=true
+StartupWMClass=tally-counter

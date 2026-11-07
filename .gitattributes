@@ -1,0 +1,16 @@
+* text=auto
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.svg text eol=lf
+*.rc text eol=lf
+*.manifest text eol=lf
+Makefile text eol=lf
+LICENSE text eol=lf
+*.png binary
+*.ico binary
+*.wav binary

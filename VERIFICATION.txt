@@ -1,0 +1,20 @@
+Tally Counter 1.0.0 - verification guide
+
+Run `make test` for the deterministic C++ behavior checks. They exercise
+all persisted counts, malformed state, increment saturation, wheel carries,
+reset timing and direction, synchronized backward digit motion, interrupted
+animations, and the embedded click format and level.
+
+The repository's CI builds on native Windows and GNU/Linux runners, runs
+platform smoke tests with isolated settings, and verifies release layouts.
+The release job publishes only after the required jobs succeed. See the
+workflow results for the exact commit being downloaded.
+
+Release checks cover the Windows executable at the ZIP root, the native
+Linux executable at the portable TAR.GZ root, the real Debian executable at
+/usr/bin/tally-counter, the AppImage contents, and source completeness.
+SHA256SUMS inside the source archive covers the four binary release files.
+
+Runtime behavior that depends on real hardware or the desktop environment
+includes speaker volume, display scaling, monitor changes, and Wayland
+window placement. The compositor controls placement under Wayland.

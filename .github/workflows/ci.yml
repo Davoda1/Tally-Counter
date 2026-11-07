@@ -1,0 +1,246 @@
+name: Native CI and release
+
+on:
+  push:
+    branches: [master]
+    tags: ['v1.0.0']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-ci-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  checks:
+    name: Workflow and source checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check workflow syntax with verified actionlint 1.7.12
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz \
+            --output "$RUNNER_TEMP/actionlint.tar.gz"
+          printf '%s  %s\n' \
+            8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8 \
+            "$RUNNER_TEMP/actionlint.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/actionlint.tar.gz" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color -shellcheck=
+      - name: Check generated assets and Python syntax
+        shell: bash
+        run: |
+          python3 packaging/embed_reset_svg.py
+          python3 packaging/make_click_sound.py
+          git diff --exit-code -- src/reset_svg.hpp src/click_sound.hpp assets/tally-click.wav
+          python3 -m compileall -q packaging tests .github/scripts
+          python3 tests/release_flow.py
+
+  linux:
+    name: Linux native build and checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install native build and X11 test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential pkg-config libgtk-3-dev libasound2-dev \
+            xvfb xauth xdotool x11-utils openbox dbus-x11
+      - name: Build the native app and run shared behavioral tests
+        run: make -j2 all test CXXFLAGS='-O2 -Wall -Wextra -Wpedantic -Werror'
+      - name: Run shared tests with address and undefined-behavior sanitizers
+        run: |
+          g++ -std=c++17 -Isrc -O1 -g -Wall -Wextra -Wpedantic -Werror \
+            -fsanitize=address,undefined -fno-omit-frame-pointer \
+            tests/core.cpp src/ui.cpp -o build/core-tests-sanitized
+          ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 \
+            UBSAN_OPTIONS=halt_on_error=1 ./build/core-tests-sanitized
+      - name: Exercise the native GTK window with isolated configuration
+        run: xvfb-run -a -s '-screen 0 1280x800x24' dbus-run-session -- python3 tests/linux_smoke.py build/tally-counter
+      - name: Preserve diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-smoke-diagnostics
+          path: build/smoke-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload the tested Linux binary
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-linux-x64
+          path: build/tally-counter
+          if-no-files-found: error
+          retention-days: 7
+
+  windows:
+    name: Windows native build and checks
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install a native MinGW-w64 GCC toolchain
+        uses: msys2/setup-msys2@ec48f7c5447b3140e2b088413ae3a55687bccb6e # v2.33.0
+        with:
+          msystem: UCRT64
+          update: true
+          cache: false
+          install: >-
+            make
+            python
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-binutils
+      - name: Build and run tests natively on Windows
+        shell: msys2 {0}
+        run: make -j2 windows test WINCXX=g++ WINDRES=windres CXX=g++ CXXFLAGS='-O2 -Wall -Wextra -Wpedantic -Werror'
+      - name: Collect notices from the installed Windows runtime packages
+        shell: msys2 {0}
+        run: python3 .github/scripts/collect_windows_runtime_notices.py
+      - name: Exercise native Win32 startup, input, and persistence
+        shell: pwsh
+        run: ./tests/windows_smoke.ps1 -Executable ./build/TallyCounter.exe
+      - name: Upload the tested Windows binary
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-windows-x64
+          path: |
+            build/TallyCounter.exe
+            build/windows-runtime-notices/
+          if-no-files-found: error
+          retention-days: 7
+
+  codeql:
+    name: CodeQL ${{ matrix.language }} (public repository)
+    # Public repositories have CodeQL access without a paid private-repo license.
+    # A skipped private run is not a completed code-scanning analysis.
+    if: ${{ github.event.repository.private == false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: c-cpp
+            build-mode: manual
+          - language: python
+            build-mode: none
+          - language: actions
+            build-mode: none
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install both frontend build dependencies
+        if: matrix.language == 'c-cpp'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential pkg-config libgtk-3-dev libasound2-dev \
+            g++-mingw-w64-x86-64
+      - name: Initialize analysis
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Trace both native frontend translation units
+        if: matrix.language == 'c-cpp'
+        run: make -j2 all windows CXXFLAGS='-O2 -Wall -Wextra -Wpedantic -Werror'
+      - name: Analyze
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: /language:${{ matrix.language }}
+
+  packages:
+    name: Build and verify five release assets
+    needs: [checks, linux, windows]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install package assembly dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential dpkg-dev file binutils squashfs-tools \
+            libgtk-3-dev libasound2-dev libasound2-plugins \
+            libgdk-pixbuf2.0-bin libglib2.0-bin dconf-gsettings-backend \
+            fonts-dejavu-core adwaita-icon-theme hicolor-icon-theme desktop-file-utils
+      - name: Download the tested Linux binary
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-linux-x64
+          path: build/
+      - name: Download the tested Windows binary
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: native-windows-x64
+          path: build/
+      - name: Build the release packages
+        run: |
+          chmod +x build/tally-counter
+          export SOURCE_DATE_EPOCH
+          SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          python3 packaging/package.py --output dist
+      - name: Verify package contents and all binary checksums
+        run: python3 packaging/check_packages.py --output dist
+      - name: Upload the five verified release files
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-assets
+          path: dist/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  release:
+    name: Publish v1.0.0 after required checks
+    needs: [checks, linux, windows, packages, codeql]
+    if: >-
+      ${{ always() && !cancelled() && github.event_name == 'push' &&
+          github.ref == 'refs/tags/v1.0.0' &&
+          needs.checks.result == 'success' && needs.linux.result == 'success' &&
+          needs.windows.result == 'success' && needs.packages.result == 'success' &&
+          (needs.codeql.result == 'success' ||
+           (github.event.repository.private && needs.codeql.result == 'skipped')) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require the release commit to belong to master
+        run: git merge-base --is-ancestor HEAD origin/master
+      - name: Download the verified release files
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-assets
+          path: dist/
+      - name: Publish or refresh the verified five-file release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/publish_release.py --directory dist
