@@ -47,7 +47,7 @@ def fetch(directory):
                 temporary = None
                 try:
                     request = urllib.request.Request(url, headers={
-                        "Accept": "application/octet-stream", "User-Agent": "tally-counter-release/1.0.0",
+                        "Accept": "application/octet-stream", "User-Agent": "tally-counter-release/1.0.1",
                     })
                     with urllib.request.urlopen(request, timeout=45) as response, tempfile.NamedTemporaryFile(
                             prefix=name + ".", suffix=".part", dir=directory, delete=False) as stream:

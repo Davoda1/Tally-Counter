@@ -3,6 +3,7 @@
 // Native GTK 3 frontend. No browser, background service, or network access.
 #include "ui.hpp"
 #include "linux_audio.hpp"
+#include "reset_sound.hpp"
 
 #include <gtk/gtk.h>
 #ifdef GDK_WINDOWING_X11
@@ -411,7 +412,22 @@ struct Application {
     }
 
     void reset() {
-        view.reset(seconds());
+        const double now = seconds();
+        const bool startsReset = view.counter.value != 0 || !view.resetSpin.moving(now);
+        view.reset(now);
+        if (startsReset) {
+            try {
+                auto samples = tally::reset_sound::render(view.resetSpin.seconds,
+                    view.resetSpin.from, view.resetSpin.to);
+                if (!samples.empty()) {
+                    // The visual and audio use the same reset trajectory.
+                    view.resetSpin.started = seconds();
+                    audio.triggerReset(std::move(samples));
+                }
+            } catch (...) {
+                // Missing audio resources never prevent resetting or saving.
+            }
+        }
         // Save even if already zero, so Reset can also retry a failed save.
         save();
         updateAccessibleName();
@@ -630,7 +646,7 @@ struct Application {
 
 int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--version") {
-        std::puts("Tally Counter 1.0.0");
+        std::puts("Tally Counter 1.0.1");
         return 0;
     }
     g_set_application_name("Tally Counter");

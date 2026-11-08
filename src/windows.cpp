@@ -22,9 +22,11 @@
 #include <cstring>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include "ui.hpp"
 #include "click_sound.hpp"
+#include "reset_sound.hpp"
 
 namespace {
 
@@ -216,6 +218,9 @@ struct Application {
     std::wstring stateDirectory;
     std::wstring statePath;
     std::wstring geometryPath;
+    // PlaySound uses this memory asynchronously. Keep it alive until playback
+    // is explicitly stopped before the next reset buffer replaces it.
+    std::vector<unsigned char> resetWave;
 } app;
 
 template<typename Function>
@@ -418,12 +423,35 @@ void refresh() {
 
 void action(bool reset) {
     const double now = nowSeconds();
+    const bool startsReset = reset && (app.view.counter.value != 0
+                                       || !app.view.resetSpin.moving(now));
     const bool changed = reset ? app.view.reset(now) : app.view.increment(now);
     if (changed && !reset) {
         // PlaySound replaces an earlier click, avoiding queued or stacked voices.
         // The embedded WAV has static lifetime for asynchronous playback.
         PlaySoundW(reinterpret_cast<LPCWSTR>(tally::click_sound::wav.data()), nullptr,
                     SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+    }
+    if (startsReset) {
+        try {
+            const auto& spin = app.view.resetSpin;
+            auto wave = tally::reset_sound::makeWav(
+                tally::reset_sound::render(spin.seconds, spin.from, spin.to));
+            if (!wave.empty()) {
+                // Stop before releasing any buffer the audio API may still
+                // reference. A new tally uses the unchanged click above and
+                // replaces this reset sound immediately, without a queue.
+                PlaySoundW(nullptr, nullptr, 0);
+                app.resetWave = std::move(wave);
+                // Synthesis must not let the visual rewind get ahead of audio.
+                app.view.resetSpin.started = nowSeconds();
+                PlaySoundW(reinterpret_cast<LPCWSTR>(app.resetWave.data()), nullptr,
+                            SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+            }
+        } catch (...) {
+            // Audio is optional; allocation/device failures must not affect
+            // the reset, its saved value, or the UI.
+        }
     }
     // A reset always persists zero, including recovery from a corrupt saved file.
     if (changed || reset || app.view.saveError) app.view.saveError = !saveState();

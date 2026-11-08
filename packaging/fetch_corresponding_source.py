@@ -48,7 +48,7 @@ def download(url, target, expected=None):
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = None
     try:
-        request = urllib.request.Request(url, headers={"User-Agent": "tally-counter-release/1.0.0"})
+        request = urllib.request.Request(url, headers={"User-Agent": "tally-counter-release/1.0.1"})
         with urllib.request.urlopen(request, timeout=45) as response, tempfile.NamedTemporaryFile(
                 prefix=target.name + ".", suffix=".partial", dir=target.parent, delete=False) as stream:
             temporary = Path(stream.name)

@@ -4,11 +4,11 @@
 
 ## Installation
 
-Download a package from the [1.0.0 release](https://github.com/Davoda1/Tally-Counter/releases/tag/v1.0.0). Windows packages target Windows 10/11 x64. All supplied Linux packages target x86-64 and require glibc 2.38 or newer. On older Linux systems, build from source against your system's libraries.
+Download a package from the [1.0.1 release](https://github.com/Davoda1/Tally-Counter/releases/tag/v1.0.1). Windows packages target Windows 10/11 x64. Linux release builds target x86-64 and require glibc 2.38 or newer. On older Linux systems, build from source against your system's libraries.
 
 ### Windows ZIP
 
-Extract `Tally-Counter-1.0.0-Windows-x64.zip` into a folder and open **TallyCounter.exe** at the archive root. The executable runs directly and needs no separate application runtime. Keep the accompanying license and notice files when redistributing it.
+Extract `Tally-Counter-1.0.1-Windows-x64.zip` into a folder and open **TallyCounter.exe** at the archive root. The executable runs directly and needs no separate application runtime. Keep the accompanying license and notice files when redistributing it.
 
 To update, close the app and extract the new version. The saved count lives in your user profile, so replacing the program does not reset it.
 
@@ -17,14 +17,14 @@ To update, close the app and extract the new version. The saved count lives in y
 The AppImage bundles the GUI libraries. Make it executable and run it:
 
 ```sh
-chmod +x Tally-Counter-1.0.0-x86_64.AppImage
-./Tally-Counter-1.0.0-x86_64.AppImage
+chmod +x Tally-Counter-1.0.1-x86_64.AppImage
+./Tally-Counter-1.0.1-x86_64.AppImage
 ```
 
 You still need a graphical Linux session and the host's basic system libraries. The AppImage runtime normally uses FUSE. If your system does not provide compatible FUSE support, extract it into an empty working directory and run its native `AppRun` executable:
 
 ```sh
-./Tally-Counter-1.0.0-x86_64.AppImage --appimage-extract
+./Tally-Counter-1.0.1-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
 ```
 
@@ -37,15 +37,15 @@ This archive contains the real `tally-counter` executable at its root. It uses t
 Extract the archive into a folder and run it:
 
 ```sh
-mkdir -p tally-counter-1.0.0
-tar -xzf Tally-Counter-1.0.0-Linux-x64.tar.gz -C tally-counter-1.0.0
-./tally-counter-1.0.0/tally-counter
+mkdir -p tally-counter-1.0.1
+tar -xzf Tally-Counter-1.0.1-Linux-x64.tar.gz -C tally-counter-1.0.1
+./tally-counter-1.0.1/tally-counter
 ```
 
 For a manual per-user installation, copy the executable into a directory on your `PATH`:
 
 ```sh
-install -Dm755 tally-counter-1.0.0/tally-counter "$HOME/.local/bin/tally-counter"
+install -Dm755 tally-counter-1.0.1/tally-counter "$HOME/.local/bin/tally-counter"
 ```
 
 Keep the archive's license and notice files if you redistribute the binary.
@@ -55,7 +55,7 @@ Keep the archive's license and notice files if you redistribute the binary.
 From the download folder, install the DEB with dependency resolution:
 
 ```sh
-sudo apt install ./tally-counter_1.0.0_amd64.deb
+sudo apt install ./tally-counter_1.0.1_amd64.deb
 ```
 
 Launch **Tally Counter** from your applications menu or run `tally-counter`. The package installs the native executable at `/usr/bin/tally-counter` and includes desktop icons.
@@ -73,19 +73,19 @@ Removing the program leaves your per-user count and window settings in place.
 The source archive contains one `SHA256SUMS` file covering all four binary packages. Download the source archive and the binary packages you want to check into the same directory, then extract the source:
 
 ```sh
-tar -xzf Tally-Counter-1.0.0-Source.tar.gz
+tar -xzf Tally-Counter-1.0.1-Source.tar.gz
 ```
 
 On Linux, check downloaded packages from that directory:
 
 ```sh
-sha256sum --ignore-missing -c Tally-Counter-1.0.0-Source/SHA256SUMS
+sha256sum --ignore-missing -c Tally-Counter-1.0.1-Source/SHA256SUMS
 ```
 
 On Windows, use PowerShell to calculate a downloaded file's hash, then compare it with its line in the extracted `SHA256SUMS` file:
 
 ```powershell
-Get-FileHash .\Tally-Counter-1.0.0-Windows-x64.zip -Algorithm SHA256
+Get-FileHash .\Tally-Counter-1.0.1-Windows-x64.zip -Algorithm SHA256
 ```
 
 ## Counting
@@ -100,7 +100,9 @@ Click the reset knob, or press Tab to select Reset and then Enter. Space continu
 
 Reset sets and saves the count to zero immediately. The knob turns clockwise while the digits roll backward using the same timing curve. The animation takes about 0.45 seconds at a low count, about one second at 1000, and at most 2.2 seconds at 9999. Both parts finish together.
 
-If you add a tally while the digits are rewinding, they move to the new count immediately while the knob completes its rotation. Repeated resets at zero do not lengthen an active rotation. Reset is silent.
+If you add a tally while the digits are rewinding, they move to the new count immediately while the knob completes its rotation. Repeated resets at zero do not lengthen an active rotation.
+
+Reset plays a quiet Fine gears ratchet synchronized with the knob, with 24 teeth per turn and a soft seating tick at the end. Its 70% sound level is fixed in the sound design; listening volume still follows your system volume. The original tally click is unchanged, and the app has no added sound controls.
 
 ## Window and appearance
 
@@ -139,7 +141,7 @@ To back up your count, close the app and copy `count.txt`. To reset only window 
 | Linux reports `GLIBC_2.38` is missing | Use a newer distribution or build from source on your current system. The AppImage does not replace the host's glibc. |
 | The Linux TAR.GZ cannot find a shared library | Install your distribution's GTK 3, Cairo/Pango, and ALSA runtime packages, or use the DEB/AppImage. |
 | The AppImage reports a FUSE error | Use the extraction method above, or install compatible FUSE support from your distribution. |
-| The counter works but no click is heard | Check the system output, volume, and mute state. On Linux, check that ALSA and its desktop audio integration are available. Counting remains usable when audio is unavailable. |
+| The counter works but no sound is heard | Check the system output, volume, and mute state. On Linux, check that ALSA and its desktop audio integration are available. Counting remains usable when audio is unavailable. |
 | The window opens at a different position on Wayland | This is controlled by the compositor. Size and maximized state can still be restored. |
 | Dark appearance does not follow a Linux desktop setting | Check the GTK 3 theme used by that desktop. The app follows GTK's theme settings. |
 

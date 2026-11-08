@@ -15,7 +15,7 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 STAMP = int(os.environ.get("SOURCE_DATE_EPOCH", "1794009600"))
 FORMATS = ("windows", "deb", "linux", "appimage", "source")
 NAMES = {
@@ -85,14 +85,15 @@ def require_binary(path, magic):
 
 def windows_package(binary, destination):
     readme = (
-        "Tally Counter 1.0.0\r\n\r\n"
+        "Tally Counter 1.0.1\r\n\r\n"
         "Run TallyCounter.exe. No installation or separate runtime is needed.\r\n"
         "Click the app or press Space to add one. Holding Space counts once.\r\n"
         "Click the reset knob to clear. Tab selects Reset; Enter activates it.\r\n"
         "Space always adds one, including when Reset has keyboard focus.\r\n"
         "The reset knob rotates clockwise; higher counts rotate longer, up to 2.2s.\r\n"
         "Digits roll backward in sync with the knob; a new tally finishes the rewind.\r\n"
-        "Successful tallies play a quiet embedded mechanical click.\r\n"
+        "Successful tallies keep the original quiet embedded mechanical click.\r\n"
+        "Reset adds Fine gears: 24 teeth/turn, fixed 70% level, soft seating tick.\r\n"
         "Window size, position and maximized state are remembered automatically.\r\n"
         "Counting stops at 9999. The app remembers the count automatically.\r\n"
         "Saved count: %APPDATA%\\TallyCounter\\count.txt\r\n"

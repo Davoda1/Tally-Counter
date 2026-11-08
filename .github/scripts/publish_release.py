@@ -17,7 +17,7 @@ import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 TAG = "v" + VERSION
 EXPECTED = {
     f"Tally-Counter-{VERSION}-Windows-x64.zip",
@@ -182,7 +182,7 @@ def main() -> None:
     parser.add_argument("--directory", type=Path, default=ROOT / "dist")
     args = parser.parse_args()
     require(os.environ.get("GITHUB_REF") == "refs/tags/" + TAG,
-            "Publication is restricted to the v1.0.0 tag")
+            "Publication is restricted to the v1.0.1 tag")
     require(os.environ.get("GITHUB_EVENT_NAME") == "push", "Publication requires the tag push event")
     files = artifacts(args.directory.resolve())
     client = GitHub(os.environ.get("GITHUB_REPOSITORY", ""))

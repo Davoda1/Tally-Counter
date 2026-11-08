@@ -6,7 +6,7 @@ WINCXX ?= x86_64-w64-mingw32-g++
 WINDRES ?= x86_64-w64-mingw32-windres
 CXXFLAGS ?= -O2 -Wall -Wextra -Wpedantic
 COMMON = -std=c++17 -Isrc
-HEADERS = src/counter.hpp src/paint.hpp src/ui.hpp src/reset_svg.hpp src/click_sound.hpp
+HEADERS = src/counter.hpp src/paint.hpp src/ui.hpp src/reset_svg.hpp src/click_sound.hpp src/reset_sound.hpp
 PREFIX ?= /usr
 
 .PHONY: all windows test install clean package
@@ -35,8 +35,12 @@ windows: build/TallyCounter.exe
 build/core-tests: tests/core.cpp src/ui.cpp $(HEADERS) | build
 	$(CXX) $(COMMON) $(CXXFLAGS) tests/core.cpp src/ui.cpp -o $@
 
-test: build/core-tests
+build/reset-audio-tests: tests/reset_sound.cpp src/ui.cpp $(HEADERS) | build
+	$(CXX) $(COMMON) $(CXXFLAGS) tests/reset_sound.cpp src/ui.cpp -o $@
+
+test: build/core-tests build/reset-audio-tests
 	./build/core-tests
+	./build/reset-audio-tests
 
 install: build/tally-counter
 	install -Dm755 build/tally-counter $(DESTDIR)$(PREFIX)/bin/tally-counter

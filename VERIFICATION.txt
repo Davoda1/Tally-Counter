@@ -1,19 +1,47 @@
-Tally Counter 1.0.0 - verification guide
+Tally Counter 1.0.1 - verification guide
 
-Run `make test` for the deterministic C++ behavior checks. They exercise
-all persisted counts, malformed state, increment saturation, wheel carries,
-reset timing and direction, synchronized backward digit motion, interrupted
-animations, and the embedded click format and level.
+Run `make test` for deterministic C++ behavior and reset-audio checks.
+The behavior tests exercise all persisted counts, malformed state,
+increment saturation, wheel carries, reset timing and direction,
+synchronized backward digit motion, interrupted animations, and the
+original embedded click format and level. The reset-audio tests exercise
+tooth timing and the synthesized signal for the fixed Fine gears profile:
+24 teeth per turn, 70% reset-sound level, and a soft seating tick.
 
-The repository's CI builds on native Windows and GNU/Linux runners, runs
-platform smoke tests with isolated settings, and verifies release layouts.
-The release job publishes only after the required jobs succeed. See the
-workflow results for the exact commit being downloaded.
+Build and test checks recorded on 2026-11-08
+------------------------------------------
+The Windows x64 frontend was cross-compiled with MinGW-w64 GCC 13.2.0;
+the Linux frontend compiled and linked with the system GTK libraries.
+Both builds used -Wall -Wextra -Wpedantic -Werror.
 
-Release checks cover the Windows executable at the ZIP root, the native
+Passed: 87,894 shared behavior checks and 1,622 reset-audio checks.
+Both test executables also passed AddressSanitizer and
+UndefinedBehaviorSanitizer. These results cover local builds and shared
+tests; native smoke tests and release-package checks are separate CI gates.
+
+The shared drawing, layout, animation and counter-model files, reset SVG,
+application icon, and original tally-click assets are unchanged from 1.0.0.
+Both native window titles remain "Tally Counter". Version information is
+stored in metadata; the interface has no added version label or controls.
+
+Release verification
+--------------------
+The repository's CI is configured to build on native Windows and GNU/Linux
+runners, run platform smoke tests with isolated settings, and verify the
+release layout. Publication requires the configured checks to succeed. Consult
+the workflow results for the exact released commit; the local checks above
+do not certify a CI result.
+
+Package checks cover the Windows executable at the ZIP root, the native
 Linux executable at the portable TAR.GZ root, the real Debian executable at
 /usr/bin/tally-counter, the AppImage contents, and source completeness.
+They also verify bundled notices and corresponding third-party source.
 SHA256SUMS inside the source archive covers the four binary release files.
+
+Native playback checks include low and high counts, repeated reset at zero,
+counting during reset, rapid input, and closing during playback. Confirm
+that the original tally click and interface remain unchanged and counting
+still works without an available audio device.
 
 Runtime behavior that depends on real hardware or the desktop environment
 includes speaker volume, display scaling, monitor changes, and Wayland

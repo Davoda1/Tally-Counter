@@ -19,9 +19,9 @@ make
 ./build/tally-counter
 ```
 
-The native Linux executable links to system GTK 3 and its dependencies. Click audio uses the system ALSA library, loaded at runtime. Missing audio support does not prevent counting. The release executable has its compiler runtimes linked statically; its required glibc version is still determined by the build system.
+The native Linux executable links to system GTK 3 and its dependencies. Click and reset audio use the system ALSA library, loaded at runtime. Missing audio support does not prevent counting. The release executable has its compiler runtimes linked statically; its required glibc version is still determined by the build system.
 
-The distributed 1.0.0 Linux binaries require glibc 2.38 or newer. A local build against an older system can target that system, provided it has compatible GTK 3 development libraries and a C++17 toolchain.
+Linux release builds on Ubuntu 24.04 require glibc 2.38 or newer. A local build against an older system can target that system, provided it has compatible GTK 3 development libraries and a C++17 toolchain.
 
 For a system installation:
 
@@ -64,7 +64,7 @@ The shared behavioral tests need only a C++17 compiler and GNU Make:
 make test
 ```
 
-The tests exercise persisted values from 0 through 9999, invalid input, formatting and carries, the maximum count, rolling-digit timing, synchronized reset, input during rewind, and the embedded click format and level.
+The tests exercise persisted values from 0 through 9999, invalid input, formatting and carries, the maximum count, rolling-digit timing, synchronized reset, input during rewind, and the embedded click format and level. The reset-audio tests in `tests/reset_sound.cpp` check tooth timing and the synthesized signal; `make test` includes them.
 
 For changes to a platform frontend, also launch that native app and check the affected behavior. Useful manual checks include rapid clicks, Space held down, reset focus and Enter, counting during reset, closing and reopening, changing themes, and restoring a maximized window. Unit tests do not exercise native event delivery or an operating system's window manager.
 
@@ -81,6 +81,8 @@ The original short click is generated into `assets/tally-click.wav` and `src/cli
 ```sh
 python3 packaging/make_click_sound.py
 ```
+
+The reset ratchet is synthesized as first-party PCM audio. Its fixed Fine gears profile uses 24 teeth per turn, a 70% reset-sound level, and a soft seating tick; the original click asset remains separate.
 
 Generated files are included so an ordinary build can use them directly. Make regenerates them when their inputs are newer. Python 3 is required for regeneration and packaging, not for running the app. Commit generated asset changes alongside their source changes.
 
@@ -107,15 +109,15 @@ The release packager creates five assets:
 
 | File | Contents |
 | --- | --- |
-| `Tally-Counter-1.0.0-Windows-x64.zip` | `TallyCounter.exe` at the archive root, usage notes, and license notices |
-| `Tally-Counter-1.0.0-Linux-x64.tar.gz` | The native `tally-counter` executable at the archive root, usage notes, and license notices |
-| `Tally-Counter-1.0.0-x86_64.AppImage` | The application and bundled GUI libraries in an executable AppImage |
-| `tally-counter_1.0.0_amd64.deb` | The native executable, desktop integration, documentation, and license notices |
-| `Tally-Counter-1.0.0-Source.tar.gz` | Source, build scripts, documentation, tests, license notices, and `SHA256SUMS` |
+| `Tally-Counter-1.0.1-Windows-x64.zip` | `TallyCounter.exe` at the archive root, usage notes, and license notices |
+| `Tally-Counter-1.0.1-Linux-x64.tar.gz` | The native `tally-counter` executable at the archive root, usage notes, and license notices |
+| `Tally-Counter-1.0.1-x86_64.AppImage` | The application and bundled GUI libraries in an executable AppImage |
+| `tally-counter_1.0.1_amd64.deb` | The native executable, desktop integration, documentation, and license notices |
+| `Tally-Counter-1.0.1-Source.tar.gz` | Source, build scripts, documentation, tests, license notices, corresponding third-party source, and `SHA256SUMS` |
 
 The source archive's single `SHA256SUMS` file covers the four binary packages. It is intentionally inside the source archive. Executables launch directly; no shell, batch, or PowerShell launcher is needed.
 
-See `packaging/package.py --help` for packaging inputs and output-directory options, and [VERIFICATION.txt](../VERIFICATION.txt) for the checks recorded for this release. Inspect archive contents and test the produced packages before attaching them to a release.
+See `packaging/package.py --help` for packaging inputs and output-directory options, and [VERIFICATION.txt](../VERIFICATION.txt) for verification guidance. Inspect archive contents and test the produced packages before attaching them to a release.
 
 ## Repository layout
 

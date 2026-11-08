@@ -1,7 +1,7 @@
 ![Tally Counter — one click, one count. A quiet native desktop counter for Windows and Linux.](docs/assets/banner.svg)
 
 <p align="center">
-  <a href="https://github.com/Davoda1/Tally-Counter/releases/tag/v1.0.0"><strong>Download 1.0.0</strong></a>
+  <a href="https://github.com/Davoda1/Tally-Counter/releases/tag/v1.0.1"><strong>Download 1.0.1</strong></a>
   &nbsp;·&nbsp;
   <a href="docs/USER-GUIDE.md">User guide</a>
   &nbsp;·&nbsp;
@@ -23,23 +23,23 @@ Tally Counter is a small native desktop app with four mechanical digits and one 
 - **0000–9999**, with rolling digits and a firm upper limit.
 - **One tally per click or physical Space press.** Holding Space counts once.
 - **A mechanical reset.** The knob turns as the digits roll back together; higher counts take longer, up to 2.2 seconds.
-- **Quiet click feedback** on successful tallies. Reset and the count limit are silent.
+- **Quiet sound feedback.** Successful tallies keep their original click. Reset adds a Fine gears ratchet at 24 teeth per turn, a fixed 70% sound level, and a soft seating tick. The count limit remains silent.
 - **Automatic saving** for the count, plus window size, position, and maximized state.
 - **Native, offline operation** with light and dark appearances.
 
 ## Download
 
-Choose the package for your system from the [1.0.0 release](https://github.com/Davoda1/Tally-Counter/releases/tag/v1.0.0).
+Choose the package for your system from the [1.0.1 release](https://github.com/Davoda1/Tally-Counter/releases/tag/v1.0.1). This patch adds reset audio while preserving the interface and the “Tally Counter” window title.
 
 | Package | Use it for |
 | --- | --- |
-| [Windows x64 ZIP](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.0/Tally-Counter-1.0.0-Windows-x64.zip) | Windows 10 or 11. Extract the archive and open `TallyCounter.exe`. |
-| [Linux x64 TAR.GZ](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.0/Tally-Counter-1.0.0-Linux-x64.tar.gz) | A native executable for manual installation, using your system's GTK 3, Cairo/Pango, and ALSA libraries. |
-| [Linux x86_64 AppImage](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.0/Tally-Counter-1.0.0-x86_64.AppImage) | A single executable package with its GUI libraries bundled. |
-| [Debian/Ubuntu amd64 DEB](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.0/tally-counter_1.0.0_amd64.deb) | Installation through a Debian-compatible package manager, with a desktop-menu entry. |
-| [Source TAR.GZ](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.0/Tally-Counter-1.0.0-Source.tar.gz) | Source, build instructions, tests, license notices, and `SHA256SUMS` for the four binary packages. |
+| [Windows x64 ZIP](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.1/Tally-Counter-1.0.1-Windows-x64.zip) | Windows 10 or 11. Extract the archive and open `TallyCounter.exe`. |
+| [Linux x64 TAR.GZ](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.1/Tally-Counter-1.0.1-Linux-x64.tar.gz) | A native executable for manual installation, using your system's GTK 3, Cairo/Pango, and ALSA libraries. |
+| [Linux x86_64 AppImage](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.1/Tally-Counter-1.0.1-x86_64.AppImage) | A single executable package with its GUI libraries bundled. |
+| [Debian/Ubuntu amd64 DEB](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.1/tally-counter_1.0.1_amd64.deb) | Installation through a Debian-compatible package manager, with a desktop-menu entry. |
+| [Source TAR.GZ](https://github.com/Davoda1/Tally-Counter/releases/download/v1.0.1/Tally-Counter-1.0.1-Source.tar.gz) | Source, build instructions, tests, license notices, corresponding third-party source, and `SHA256SUMS` for the four binary packages. |
 
-The supplied Linux binaries need **x86-64 and glibc 2.38 or newer**. The TAR.GZ and DEB use system GUI libraries; the AppImage bundles them. See the [installation guide](docs/USER-GUIDE.md#installation) for dependency details, AppImage setup, and checksum verification.
+Linux release builds target **x86-64 and glibc 2.38 or newer**. The TAR.GZ and DEB use system GUI libraries; the AppImage bundles them. See the [installation guide](docs/USER-GUIDE.md#installation) for dependency details, AppImage setup, and checksum verification.
 
 ## Use
 
@@ -73,4 +73,4 @@ Bug reports and small, focused improvements are welcome. Read [Contributing](CON
 
 ## License
 
-First-party code, artwork, documentation, and the generated click sound are available under the [zlib License](LICENSE), **Copyright (c) 2026 davoda1**. Distributed third-party components retain their own licenses; see [Third-party notices](THIRD-PARTY-NOTICES.txt) and [`licenses/`](licenses/).
+First-party code, artwork, documentation, and synthesized sounds are available under the [zlib License](LICENSE), **Copyright (c) 2026 davoda1**. Distributed third-party components retain their own licenses; see [Third-party notices](THIRD-PARTY-NOTICES.txt) and [`licenses/`](licenses/).

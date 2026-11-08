@@ -4,8 +4,8 @@
 1 RT_MANIFEST "packaging/windows.manifest"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,0,1,0
+ PRODUCTVERSION 1,0,1,0
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0
  FILEOS VOS_NT_WINDOWS32
@@ -18,12 +18,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "davoda1\0"
             VALUE "FileDescription", "Tally Counter\0"
-            VALUE "FileVersion", "1.0.0\0"
+            VALUE "FileVersion", "1.0.1\0"
             VALUE "InternalName", "TallyCounter\0"
             VALUE "LegalCopyright", "Copyright (c) 2026 davoda1\0"
             VALUE "OriginalFilename", "TallyCounter.exe\0"
             VALUE "ProductName", "Tally Counter\0"
-            VALUE "ProductVersion", "1.0.0\0"
+            VALUE "ProductVersion", "1.0.1\0"
         END
     END
     BLOCK "VarFileInfo"

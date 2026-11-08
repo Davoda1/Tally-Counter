@@ -13,10 +13,12 @@
 #include <mutex>
 #include <system_error>
 #include <thread>
+#include <utility>
+#include <vector>
 
 namespace tally {
-// ALSA stays on this worker. A new tally replaces any unfinished click instead
-// of building a queue, so the feedback remains attached to the current input.
+// ALSA stays on this worker. The most recent sound replaces any unfinished
+// playback instead of building a queue. A tally always uses the original click.
 class ClickAudio final {
     struct Pcm;
     using Frames = long;
@@ -56,6 +58,9 @@ class ClickAudio final {
         bool stopping = false;
         bool pending = false;
         bool finished = false;
+        // Null denotes the static original click; otherwise the worker owns
+        // this reset buffer until playback finishes or a new request arrives.
+        std::shared_ptr<const std::vector<std::int16_t>> pendingReset;
     };
     std::shared_ptr<State> state = std::make_shared<State>();
     std::thread worker;
@@ -74,10 +79,12 @@ class ClickAudio final {
         auto retryAfter = Clock::time_point::min();
         bool quit = false;
         while (!quit) {
+            std::shared_ptr<const std::vector<std::int16_t>> reset;
             {
                 std::unique_lock<std::mutex> lock(state->mutex);
                 state->wake.wait(lock, [&state] { return state->stopping || state->pending; });
                 if (state->stopping) break;
+                reset = std::move(state->pendingReset);
                 state->pending = false;
             }
             if (Clock::now() < retryAfter) continue;
@@ -97,13 +104,21 @@ class ClickAudio final {
             bool failed = alsa.prepare(pcm) < 0;
             std::size_t offset = 0;
             unsigned recoveries = 0;
-            auto deadline = Clock::now() + 250ms;
+            const auto playbackBudget = [&reset] {
+                // Keep the original click's short timeout, while allowing the
+                // complete count-dependent reset and its small seating tick.
+                return 250ms + std::chrono::milliseconds(reset
+                    ? (reset->size() * 1000 + click_sound::sampleRate - 1)
+                        / click_sound::sampleRate : 0);
+            };
+            auto deadline = Clock::now() + playbackBudget();
             while (!failed && !quit) {
                 bool restart = false;
                 {
                     std::lock_guard<std::mutex> lock(state->mutex);
                     quit = state->stopping;
                     restart = state->pending;
+                    if (restart) reset = std::move(state->pendingReset);
                     state->pending = false;
                 }
                 if (quit) break;
@@ -112,13 +127,15 @@ class ClickAudio final {
                     if (alsa.prepare(pcm) < 0) { failed = true; break; }
                     offset = 0;
                     recoveries = 0;
-                    deadline = Clock::now() + 250ms;
+                    deadline = Clock::now() + playbackBudget();
                 }
                 if (Clock::now() >= deadline) { failed = true; break; }
                 Frames result;
-                if (offset < click_sound::pcm.size()) {
-                    const auto frames = std::min<std::size_t>(240, click_sound::pcm.size() - offset);
-                    result = alsa.write(pcm, click_sound::pcm.data() + offset,
+                const auto count = reset ? reset->size() : click_sound::pcm.size();
+                const auto* samples = reset ? reset->data() : click_sound::pcm.data();
+                if (offset < count) {
+                    const auto frames = std::min<std::size_t>(240, count - offset);
+                    result = alsa.write(pcm, samples + offset,
                                         static_cast<UnsignedFrames>(frames));
                     if (result > 0) {
                         offset += static_cast<std::size_t>(result);
@@ -167,6 +184,7 @@ public:
         std::unique_lock<std::mutex> lock(state->mutex);
         state->stopping = true;
         state->pending = false;
+        state->pendingReset.reset();
         state->wake.notify_one();
         // Nonblocking PCM operations normally stop immediately. A desktop
         // plugin may nevertheless stall while connecting to its audio server;
@@ -182,6 +200,17 @@ public:
         if (!worker.joinable()) return;
         {
             std::lock_guard<std::mutex> lock(state->mutex);
+            state->pendingReset.reset();
+            state->pending = true;
+        }
+        state->wake.notify_one();
+    }
+    void triggerReset(std::vector<std::int16_t> samples) {
+        if (!worker.joinable() || samples.empty()) return;
+        auto buffer = std::make_shared<const std::vector<std::int16_t>>(std::move(samples));
+        {
+            std::lock_guard<std::mutex> lock(state->mutex);
+            state->pendingReset = std::move(buffer);
             state->pending = true;
         }
         state->wake.notify_one();
